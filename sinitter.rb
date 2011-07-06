@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 require 'rubygems'
+require 'bundler/setup'
 require 'sinatra'
 require 'twitter_oauth'
 
@@ -12,8 +13,8 @@ before do
   next if request.path_info =~ /ping$/
   @user = session[:user]
   @client = TwitterOAuth::Client.new(
-    :consumer_key => ENV['CONSUMER_KEY'] || @@config['consumer_key'],
-    :consumer_secret => ENV['CONSUMER_SECRET'] || @@config['consumer_secret'],
+    :consumer_key => ENV['CONSUMER_KEY'] || @@config['twitter']['consumer_key'],
+    :consumer_secret => ENV['CONSUMER_SECRET'] || @@config['twitter']['consumer_secret'],
     :token => session[:access_token],
     :secret => session[:secret_token]
   )
@@ -67,7 +68,7 @@ end
 # store the request tokens and send to Twitter
 get '/connect' do
   request_token = @client.request_token(
-    :oauth_callback => ENV['CALLBACK_URL'] || @@config['callback_url']
+    :oauth_callback => ENV['CALLBACK_URL'] || @@config['twitter']['callback_url']
   )
   session[:request_token] = request_token.token
   session[:request_token_secret] = request_token.secret
@@ -76,7 +77,7 @@ end
 
 # auth URL is called by twitter after the user has accepted the application
 # this is configured on the Twitter application settings page
-get '/auth' do
+get '/auth_callback' do
   # Exchange the request token for an access token.
   
   begin
